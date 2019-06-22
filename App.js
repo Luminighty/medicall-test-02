@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
-import {View, TextInput, Button, Alert, StyleSheet, Text} from 'react-native';
-
+import {View, TextInput, Button, Alert, AppState, StyleSheet, Text, PushNotificationIOS} from 'react-native';
+import PushNotification from 'react-native-push-notification';
 
 const styles = StyleSheet.create({
 	input: {
@@ -12,14 +12,34 @@ const styles = StyleSheet.create({
 })
 
 export default class App extends Component {
+	state = {appState: AppState.currentState};
+	
+	componentDidMount() {
+		PushNotification.configure({
+			onNotification: function(notification) {
+				console.log( 'NOTIFICATION:', notification );
 
+				// process the notification
+				let alertData = notification.data;
+				if(!notification.foreground)
+					alertData *= 2;
+				alert(alertData);
+				console.log("APPSTATE:", AppState.currentState);
+				// required on iOS only (see fetchCompletionHandler docs: https://facebook.github.io/react-native/docs/pushnotificationios.html)
+				notification.finish(PushNotificationIOS.FetchResult.NoData);
+			},
+			requestPermissions: true
+		});
+	}
 	constructor(props) {
 		super(props);
 		this.state = {
-			"title": "a",
-			"body": "b",
-			"data": 0
+			"title": "",
+			"body": "",
+			"data": 3
 		};
+		this.onTextChanged = this.onTextChanged.bind(this);
+		this.onButtonPress = this.onButtonPress.bind(this);
 	}
 
 	onTextChanged(text, valueName) {
@@ -28,9 +48,13 @@ export default class App extends Component {
 		});
 	}
 
-	onButtonPress(state) {
-		
-		Alert.alert(this.state.title, this.state.body);
+	onButtonPress() {
+		PushNotification.localNotificationSchedule({
+			title: this.state.title,
+			message: this.state.body,
+			data: this.state.data,
+			date: new Date(Date.now() + (this.state.data * 1000))
+		});
 	}
 
 	render() {
@@ -53,26 +77,29 @@ class NumberInput extends TextInput {
 	constructor(props) {
 		super(props);
 		this.state = {value:""}
+		this.validateNumber = this.validateNumber.bind(this);
 	}
 
-	validateNumber(e, min, max, onValueChange) {
+	validateNumber(e) {
 		if(e !== '' && e !== "-") {
 			if(isNaN(e.toString()))
 				return;
-			let num = Number(e);
+			const num = Number(e);
+			const min = this.props.min;
+			const max = this.props.max;
 			if(min !== undefined && Number(min) > num)
 				e = min;
 			if(max !== undefined && Number(max) < num)
 				e = max;
 		}
 		this.setState({value: e});
-		if(onValueChange !== undefined)
-			onValueChange(e);
+		if(this.props.onValueChange !== undefined)
+			this.props.onValueChange(e);
 	}
 
 	render() {
 		return (
-			<TextInput {...this.props} keyboardType="numeric" onChangeText={(text) => this.validateNumber(text, this.props.min, this.props.max, this.props.onValueChange)} value={this.state.value}/>
+			<TextInput {...this.props} keyboardType="numeric" onChangeText={this.validateNumber} value={this.state.value}/>
 		);
 	}
 
