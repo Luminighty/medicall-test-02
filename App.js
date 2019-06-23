@@ -1,17 +1,7 @@
-import React, {
-	Component
-} from 'react';
-import {
-	View,
-	TextInput,
-	Button,
-	Alert,
-	AppState,
-	StyleSheet,
-	Text,
-	PushNotificationIOS
-} from 'react-native';
+import React, {Component} from 'react';
+import { View, TextInput, Button, Alert, AppState, StyleSheet, Text, PushNotificationIOS } from 'react-native';
 import PushNotification from 'react-native-push-notification';
+import NumberInput from './NumberInput';
 
 const styles = StyleSheet.create({
 	input: {
@@ -35,7 +25,7 @@ export default class App extends Component {
 				console.log("APPSTATE 1:", AppState.currentState);
 				if (AppState.currentState !== "active")
 					alertData *= 2;
-				alert(alertData + "asd");
+				alert(alertData);
 				// required on iOS only (see fetchCompletionHandler docs: https://facebook.github.io/react-native/docs/pushnotificationios.html)
 				notification.finish(PushNotificationIOS.FetchResult.NoData);
 			},
@@ -96,41 +86,4 @@ export default class App extends Component {
 			</View>
 		);
 	}
-}
-
-class NumberInput extends TextInput {
-
-	constructor(props) {
-		super(props);
-		this.state = {
-			value: ""
-		}
-		this.validateNumber = this.validateNumber.bind(this);
-	}
-
-	validateNumber(e) {
-		if (e !== '' && e !== "-") {
-			if (isNaN(e.toString()))
-				return;
-			const num = Number(e);
-			const min = this.props.min;
-			const max = this.props.max;
-			if (min !== undefined && Number(min) > num)
-				e = min;
-			if (max !== undefined && Number(max) < num)
-				e = max;
-		}
-		this.setState({
-			value: e
-		});
-		if (this.props.onValueChange !== undefined)
-			this.props.onValueChange(e);
-	}
-
-	render() {
-		return ( 
-		<TextInput {...this.props} keyboardType = "numeric" onChangeText = {this.validateNumber} value = {this.state.value}/>
-		);
-	}
-
 }
