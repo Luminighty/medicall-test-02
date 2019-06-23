@@ -35,7 +35,7 @@ export default class App extends Component {
 				console.log("APPSTATE 1:", AppState.currentState);
 				if (AppState.currentState !== "active")
 					alertData *= 2;
-				alert(alertData + "asd");
+				alert(alertData);
 				// required on iOS only (see fetchCompletionHandler docs: https://facebook.github.io/react-native/docs/pushnotificationios.html)
 				notification.finish(PushNotificationIOS.FetchResult.NoData);
 			},
